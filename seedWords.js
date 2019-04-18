@@ -1,4 +1,4 @@
-let shuffle = require('./shuffle');
+let shuffle = require('./Utilities/shuffle');
 
 const seedWords = `
 throat
@@ -302,12 +302,12 @@ pricey
 abortive
 pedal`;
 
+const generateSeedWords = () => {
+  return seedWords
+    .split("\n")
+    .map((word) => word.trim())
+    .sort(() => 0.5 - Math.random())
+    .slice(0, 10);
+}
 
-
-const seedWordArray = seedWords
-  .split("\n")
-  .map((word) => word.trim())
-  .sort(() => 0.5 - Math.random())
-  .slice(0, 10);
-
-module.exports = seedWordArray;
+module.exports = generateSeedWords;
