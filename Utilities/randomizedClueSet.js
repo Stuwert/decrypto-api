@@ -1,7 +1,6 @@
-let shuffle = require('./Utilities/shuffle');
+let shuffle = require('../Utilities/shuffle');
 
-
-
+// At some point I would like this to generate an arbitary number of loops depending on array length
 const generateRandomizedSet = () => {
   const accumulator = [];
   const numberOfWords = [1, 2, 3, 4, 5, 6];
@@ -22,6 +21,5 @@ const generateRandomizedSet = () => {
 
   return shuffle(accumulator);
 }
-
 
 module.exports = generateRandomizedSet;

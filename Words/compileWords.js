@@ -1,6 +1,6 @@
 let unirest = require('unirest');
 let seedWords = require('./seedWords');
-let shuffle = require('./Utilities/shuffle');
+let shuffle = require('../Utilities/shuffle');
 
 var wordsApiUrl = 'https://wordsapiv1.p.rapidapi.com/words/';
 
