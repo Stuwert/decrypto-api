@@ -4,8 +4,11 @@ let shuffle = require('../Utilities/shuffle');
 const generateRandomizedSet = () => {
   const accumulator = [];
   const numberOfWords = [1, 2, 3, 4, 5, 6];
+  const sequenceLength = 4;
 
-  numberOfWords.forEach(numberOne => (
+  const iterators = Array.apply(null, { length: sequenceLength }).map((item, i) => i + 1);
+
+  numberOfWords.forEach(numberOne => {
     numberOfWords.forEach(numberTwo => {
       if (numberOne !== numberTwo) {
         numberOfWords.forEach((numberThree) => {
@@ -17,7 +20,7 @@ const generateRandomizedSet = () => {
         })
       }
     })
-  ));
+  });
 
   return shuffle(accumulator);
 }

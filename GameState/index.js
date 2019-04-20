@@ -42,6 +42,13 @@ const seedToMapping = (
   return map;
 };
 
+const getParentWords = (seedWords) => {
+  return [1, 2, 3, 4, 5, 6].map((index) => ({
+    parentOf: index,
+    word: seedWords.get(index).parentWord,
+  }))
+}
+
 class GameState {
   constructor() {
     this.currentRound = 1;
@@ -53,8 +60,25 @@ class GameState {
     this.clueSequences = generateRandomizedSequences();
   }
 
+  showAnswers() {
+    if (this.correctGuesses < 3) {
+      return this.getGameState();
+    }
+
+    return {
+      ...this.getGameState(),
+      answers: getParentWords(this.seedWords),
+    }
+  }
+
+  isStarted() {
+    return this.gameReady;
+  }
+
   getGameState() {
     this.checkGameReady();
+    console.log("Round is ", this.currentRound);
+    console.log(this.guessedWords);
 
     return {
       currentRound: this.currentRound,
@@ -73,9 +97,9 @@ class GameState {
   }
 
   startGame(seedWords) {
-    if (this.gameReady) {
-      throw new Error('You cannot start the game twice');
-    }
+    // if (this.gameReady) {
+    //   throw new Error('You cannot start the game twice');
+    // }
     this.seedWords = seedWords.reduce(seedToMapping, new Map())
     this.gameReady = true;
     this.currentRoundWords = this.generateRoundClues();
@@ -122,6 +146,8 @@ class GameState {
   }
 
   checkAnswers(userGuesses) {
+    console.log("Round is ", this.currentRound);
+    console.log(userGuesses);
     this.checkGameReady();
 
     if (userGuesses.length !== this.currentRoundWords.length) {
@@ -129,6 +155,7 @@ class GameState {
     }
 
     const currentRoundWords = this.currentRoundWords;
+    const roundNumber = this.currentRound;
 
     // This could technically lead to them being re-ordered...
     const answeredWords = userGuesses.map(
@@ -136,18 +163,17 @@ class GameState {
         ...currentRoundWords[wordIndex],
         isCorrect: compareGuessToAnswer(currentRoundWords, guessWord),
         guess: guessWord.guess,
+        locationInSequence: wordIndex + 1,
+        roundNumber,
       })
     )
 
     const [addToCorrect, addToIncorrect] = incrementedCounts(answeredWords);
-    console.log(addToCorrect);
-    console.log(addToIncorrect);
-    console.log(this.correctGuesses);
+
     this.correctGuesses = this.correctGuesses + addToCorrect;
     this.incorrectGuesses = this.incorrectGuesses + addToIncorrect;
     this.guessedWords = this.guessedWords.concat(answeredWords);
     this.currentRound++;
-    console.log(this.getGameState());
 
     this.generateRoundClues();
 

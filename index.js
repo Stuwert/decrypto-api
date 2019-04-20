@@ -6,6 +6,9 @@ let CurrentGame = new GameState();
 
 
 const startGame = () => {
+  if (CurrentGame.isStarted()) {
+    return CurrentGame.getGameState();
+  }
   // This needs to be abstracted properly MERRRR
   return getCompiledWords().then((seedWords) => {
     return CurrentGame.startGame(seedWords);
@@ -18,22 +21,39 @@ const checkAnswers = (parent, args, context, info) => {
   return CurrentGame.checkAnswers(args["guesses"]);
 }
 
+const showAnswers = () => CurrentGame.showAnswers();
+
 // Type definitions define the "shape" of your data and specify
 // which ways the data can be fetched from the GraphQL server.
 const typeDefs = gql`
+  type WordClue {
+    word: String!
+    isCorrect: Boolean
+    locationInSequence: Int
+  }
+
+  type WordAnswer {
+    word: String!
+    parentOf: Int!
+  }
+
   type Word {
     word: String!
     isCorrect: Boolean
     guess: Int
+    locationInSequence: Int
+    roundNumber: Int
+    answer: Int
   }
 
   type GameState {
     correctGuesses: Int
     currentRound: Int!
-    currentRoundWords: [Word]
+    currentRoundWords: [WordClue]
     incorrectGuesses: Int
     gameReady: Boolean!
     guessedWords: [Word]
+    answers: [WordAnswer]
   }
 
   input Guess {
@@ -43,6 +63,7 @@ const typeDefs = gql`
 
   type Query {
     getGameState: GameState
+    showAnswers: GameState
   }
 
   type Mutation {
@@ -58,6 +79,7 @@ const typeDefs = gql`
 const resolvers = {
   Query: {
     getGameState: getGameState,
+    showAnswers: showAnswers,
   },
   Mutation: {
     startGame: startGame,
