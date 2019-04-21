@@ -139,12 +139,15 @@ class GameState {
   }
 
   generateRoundClues() {
+    console.group('Genereate Round Clue Sequence')
     this.checkGameReady();
 
     const roundSequence = this.clueSequences.pop();
 
     const generateRoundClue = this.generateRoundClue.bind(this);
     this.currentRoundWords = roundSequence.map(generateRoundClue);
+
+
 
     return this.currentRoundWords;
   }

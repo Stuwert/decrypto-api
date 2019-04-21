@@ -8,7 +8,7 @@ let CurrentGame = new GameState();
 const startGame = () => {
   if (CurrentGame.isFinished() || !CurrentGame.isStarted()) {
     return getCompiledWords().then((seedWords) => {
-      console.log("Seed Words are ", seedWords);
+      // console.log("Seed Words are ", seedWords);
       return CurrentGame.startGame(seedWords);
     })
   }
