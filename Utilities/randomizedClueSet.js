@@ -3,10 +3,10 @@ let shuffle = require('../Utilities/shuffle');
 // At some point I would like this to generate an arbitary number of loops depending on array length
 const generateRandomizedSet = () => {
   const accumulator = [];
-  const numberOfWords = [1, 2, 3, 4, 5, 6];
-  const sequenceLength = 4;
+  const numberOfWords = [1, 2, 3, 4, 5];
+  // const sequenceLength = 4;
 
-  const iterators = Array.apply(null, { length: sequenceLength }).map((item, i) => i + 1);
+  // const iterators = Array.apply(null, { length: sequenceLength }).map((item, i) => i + 1);
 
   numberOfWords.forEach(numberOne => {
     numberOfWords.forEach(numberTwo => {

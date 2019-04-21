@@ -6,13 +6,14 @@ let CurrentGame = new GameState();
 
 
 const startGame = () => {
-  if (CurrentGame.isStarted()) {
-    return CurrentGame.getGameState();
+  if (CurrentGame.isFinished() || !CurrentGame.isStarted()) {
+    return getCompiledWords().then((seedWords) => {
+      console.log("Seed Words are ", seedWords);
+      return CurrentGame.startGame(seedWords);
+    })
   }
-  // This needs to be abstracted properly MERRRR
-  return getCompiledWords().then((seedWords) => {
-    return CurrentGame.startGame(seedWords);
-  })
+
+  return CurrentGame.getGameState();
 }
 
 const getGameState = () => CurrentGame.getGameState();

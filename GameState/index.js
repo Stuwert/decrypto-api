@@ -1,4 +1,3 @@
-let createWordCluesForRound = require('./createRound');
 let generateRandomizedSequences = require('../Utilities/randomizedClueSet');
 
 // Game State cares about holding the overall state details
@@ -43,10 +42,29 @@ const seedToMapping = (
 };
 
 const getParentWords = (seedWords) => {
-  return [1, 2, 3, 4, 5, 6].map((index) => ({
+  return [1, 2, 3, 4, 5].map((index) => ({
     parentOf: index,
     word: seedWords.get(index).parentWord,
   }))
+}
+
+const pickAnswerToShow = (guessedWord, index, checkedAnswers) => {
+  const { isCorrect } = guessedWord;
+
+  if (isCorrect) return guessedWord;
+
+  // We will allow users to see 1 fewer answers than the number of incorrect guesses
+  // i.e. if they have 3 incorrect guesses they will see 2 answers.
+  // If no answers are incorrect, the code will never reach here.
+  const incorrectWordsToShowAnswer = checkedAnswers.filter(({ isCorrect }) => !isCorrect).slice(0, -1);
+
+  if (incorrectWordsToShowAnswer.indexOf(guessedWord) !== -1) {
+    return guessedWord;
+  }
+
+  const removeAnswerFromGuess = ({ answer, ...rest }) => ({ ...rest });
+
+  return removeAnswerFromGuess(guessedWord);
 }
 
 class GameState {
@@ -58,6 +76,7 @@ class GameState {
     this.guessedWords = [];
     this.gameReady = false;
     this.clueSequences = generateRandomizedSequences();
+    this.gameComplete = false;
   }
 
   showAnswers() {
@@ -71,14 +90,16 @@ class GameState {
     }
   }
 
+  isFinished() {
+    return this.isFinished;
+  }
+
   isStarted() {
     return this.gameReady;
   }
 
   getGameState() {
     this.checkGameReady();
-    console.log("Round is ", this.currentRound);
-    console.log(this.guessedWords);
 
     return {
       currentRound: this.currentRound,
@@ -103,8 +124,11 @@ class GameState {
     this.seedWords = seedWords.reduce(seedToMapping, new Map())
     this.gameReady = true;
     this.currentRoundWords = this.generateRoundClues();
+    this.gameFinished = false;
 
-    console.log(this.getGameState());
+    console.log(this.seedWords);
+
+
     return this.getGameState();
   }
 
@@ -146,8 +170,6 @@ class GameState {
   }
 
   checkAnswers(userGuesses) {
-    console.log("Round is ", this.currentRound);
-    console.log(userGuesses);
     this.checkGameReady();
 
     if (userGuesses.length !== this.currentRoundWords.length) {
@@ -166,107 +188,25 @@ class GameState {
         locationInSequence: wordIndex + 1,
         roundNumber,
       })
-    )
+    );
+
+    const answeredWordsWithAnswers = answeredWords.map(pickAnswerToShow);
 
     const [addToCorrect, addToIncorrect] = incrementedCounts(answeredWords);
 
     this.correctGuesses = this.correctGuesses + addToCorrect;
     this.incorrectGuesses = this.incorrectGuesses + addToIncorrect;
-    this.guessedWords = this.guessedWords.concat(answeredWords);
+    this.guessedWords = this.guessedWords.concat(answeredWordsWithAnswers);
     this.currentRound++;
+
+    if (this.correctGuesses >= 3) {
+      this.isFinished = true;
+    }
 
     this.generateRoundClues();
 
-    return answeredWords;
+    return answeredWordsWithAnswers;
   }
 }
 
 module.exports = GameState;
-
-// let gameState = {};
-
-// const incrementCounts = (checkedAnswers) => {
-//   const { correctGuesses, incorrectGuesses } = gameState;
-//   const includesIncorrect = checkedAnswers.find(({ correct }) => correct === false)
-
-//   if (includesIncorrect) {
-//     return [correctGuesses, incorrectGuesses + 1];
-//   }
-//   return [correctGuesses + 1, incorrectGuesses];
-// }
-
-// const startNewGame = () => {
-
-//   getCompiledWords().then((results) => {
-
-//     roundDetails.words = results;
-//     generateRound();
-//     return true;
-//   });
-//   gameState = {
-//     currentRound: 1,
-//     correctGuesses: 0,
-//     incorrectGuesses: 0,
-//     currentRoundWords: createWordCluesForRound(),
-//     guessedWords: [],
-//     rootWords: reuslts,
-//   }
-
-//   return gameState;
-// };
-
-// const getGameState = () => gameState;
-
-// const setGuessedWords = (currentRoundWords) => {
-//   const { guessedWords } = gameState;
-
-//   const guessedAndCurrentWords = guessedWords.concat(currentRoundWords);
-//   const [correctGuesses, incorrectGuesses] = incrementCounts(currentRoundWords);
-
-//   gameState = {
-//     ...gameState,
-//     guessedWords: guessedAndCurrentWords,
-//     correctGuesses,
-//     incorrectGuesses,
-//   }
-// }
-
-// const createNewRound = () => {
-//   const { currentRound } = gameState;
-//   gameState = {
-//     ...gameState,
-//     currentRound: currentRound + 1,
-//     currentRoundWords: createWordCluesForRound()
-//   }
-// };
-
-// const compareGuessToAnswer = ({ word: guessWord, guess }) => {
-//   const { currentRoundWords } = gameState;
-//   const { answer } = currentRoundWords.find(({ word }) => word === guessWord);
-
-//   return answer === guess;
-// };
-
-
-// const makeGuess = (guessedWords) => {
-//   const { currentRoundWords } = gameState;
-//   if (currentRoundWords.length !== guessedWords.length) {
-//     throw new Error('this is an incorrect submission');
-//   }
-
-//   const checkedGuessWords = guessedWords.map((guessWord) => ({
-//     ...guessWord,
-//     isCorrect: compareGuessToAnswer(guessWord)
-//   }));
-
-//   setGuessedWords(checkedGuessWords);
-//   createNewRound();
-
-//   return checkedGuessWords
-// };
-
-// export {
-//   startNewGame,
-//   makeGuess,
-//   getGameState,
-// };
