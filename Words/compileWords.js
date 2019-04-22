@@ -31,6 +31,10 @@ const seedWordsToApi = ({ body }) => (
 
 const getCompiledWords = () => {
 
+  // Fault tolerance will occur in 3 locations
+  // 1. If the word has already been searched, go get the relationships from the databse
+  // 2. If there aren't enough responses from the gotten words, go get a new parent word that hasn't already existed
+  // 3. If 5 words have still not been found, retry.
 
   // Get seedwords from Wordnik
   return unirest
@@ -59,7 +63,9 @@ const getCompiledWords = () => {
               }
 
               const combinedRelatedWords = relatedWordsArrays.reduce(reduceRelatedWords, []);
-              const relatedWords = new Set(combinedRelatedWords);
+              // This will filter out any phrases that have the parent in the phrase
+              const filteredRelatedWords = relatedWordsArray.filter((relatedWord) => !relatedWord.includes(parentWord));
+              const relatedWords = new Set(filteredRelatedWords);
 
               parsingAccumulator.push({
                 parentWord,
