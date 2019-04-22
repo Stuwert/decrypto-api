@@ -45,6 +45,7 @@ const typeDefs = gql`
     locationInSequence: Int
     roundNumber: Int
     answer: Int
+    showAnswer: Boolean!
   }
 
   type GameState {

@@ -51,7 +51,7 @@ const getParentWords = (seedWords) => {
 const pickAnswerToShow = (guessedWord, index, checkedAnswers) => {
   const { isCorrect } = guessedWord;
 
-  if (isCorrect) return guessedWord;
+  if (isCorrect) return { ...guessedWord, showAnswer: true };
 
   // We will allow users to see 1 fewer answers than the number of incorrect guesses
   // i.e. if they have 3 incorrect guesses they will see 2 answers.
@@ -59,12 +59,16 @@ const pickAnswerToShow = (guessedWord, index, checkedAnswers) => {
   const incorrectWordsToShowAnswer = checkedAnswers.filter(({ isCorrect }) => !isCorrect).slice(0, -1);
 
   if (incorrectWordsToShowAnswer.indexOf(guessedWord) !== -1) {
-    return guessedWord;
+    return {
+      ...guessedWord,
+      showAnswer: true,
+    };
   }
 
-  const removeAnswerFromGuess = ({ answer, ...rest }) => ({ ...rest });
-
-  return removeAnswerFromGuess(guessedWord);
+  return {
+    ...guessedWord,
+    showAnswer: false,
+  };
 }
 
 class GameState {
@@ -74,38 +78,55 @@ class GameState {
     this.incorrectGuesses = 0;
     this.currentRoundWords = [];
     this.guessedWords = [];
+    this.gameComplete = false;
     this.gameReady = false;
     this.clueSequences = generateRandomizedSequences();
-    this.gameComplete = false;
+    this.hasBeenCompleted = false;
   }
+
+  getGuessedWords(showAnswers = false) {
+    if (showAnswers) return this.guessedWords;
+
+    const removeAnswerFromGuess = ({ answer, ...rest }) => ({ ...rest });
+
+    return this.guessedWords.map((word) => {
+      if (word.showAnswer) return word;
+      return removeAnswerFromGuess(word);
+    })
+  }
+
 
   showAnswers() {
     if (this.correctGuesses < 3) {
       return this.getGameState();
     }
 
+    const showAnswers = true;
+
     return {
-      ...this.getGameState(),
+      ...this.getGameState(showAnswers),
       answers: getParentWords(this.seedWords),
     }
   }
 
   isFinished() {
-    return this.isFinished;
+    return this.hasBeenCompleted;
   }
 
   isStarted() {
     return this.gameReady;
   }
 
-  getGameState() {
+  // Passing false is a hacky-hack. Different views should be
+  // accessed through different methods, ieally.
+  getGameState(showAnswers = false) {
     this.checkGameReady();
 
     return {
       currentRound: this.currentRound,
       correctGuesses: this.correctGuesses,
       incorrectGuesses: this.incorrectGuesses,
-      guessedWords: this.guessedWords,
+      guessedWords: this.getGuessedWords(showAnswers),
       currentRoundWords: this.currentRoundWords,
       gameReady: this.gameReady,
     }
@@ -118,16 +139,14 @@ class GameState {
   }
 
   startGame(seedWords) {
-    // if (this.gameReady) {
-    //   throw new Error('You cannot start the game twice');
-    // }
     this.seedWords = seedWords.reduce(seedToMapping, new Map())
     this.gameReady = true;
     this.currentRoundWords = this.generateRoundClues();
     this.gameFinished = false;
-
-    console.log(this.seedWords);
-
+    this.currentRound = 1;
+    this.correctGuesses = 0;
+    this.incorrectGuesses = 0;
+    this.guessedWords = [];
 
     return this.getGameState();
   }
@@ -203,7 +222,10 @@ class GameState {
     this.currentRound++;
 
     if (this.correctGuesses >= 3) {
-      this.isFinished = true;
+      this.hasBeenCompleted = true;
+
+
+      return answeredWordsWithAnswers;
     }
 
     this.generateRoundClues();
