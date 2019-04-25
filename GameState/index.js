@@ -132,6 +132,20 @@ class GameState {
     }
   }
 
+  getRoundSequenceKey() {
+    const keys = [
+      "threeAccumulator",
+      "twoAccumulator",
+      "fourAccumulator",
+    ];
+
+    return keys[this.correctGuesses];
+  }
+
+  getClueSequenceFromRound() {
+    return this.clueSequences[this.getRoundSequenceKey()].pop();
+  }
+
   checkGameReady() {
     if (!this.gameReady) {
       throw new Error('The Game State Has Not Been Initialized');
@@ -158,10 +172,9 @@ class GameState {
   }
 
   generateRoundClues() {
-    console.group('Genereate Round Clue Sequence')
     this.checkGameReady();
 
-    const roundSequence = this.clueSequences.pop();
+    const roundSequence = this.getClueSequenceFromRound();
 
     const generateRoundClue = this.generateRoundClue.bind(this);
     this.currentRoundWords = roundSequence.map(generateRoundClue);

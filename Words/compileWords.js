@@ -64,7 +64,7 @@ const getCompiledWords = () => {
 
               const combinedRelatedWords = relatedWordsArrays.reduce(reduceRelatedWords, []);
               // This will filter out any phrases that have the parent in the phrase
-              const filteredRelatedWords = relatedWordsArray.filter((relatedWord) => !relatedWord.includes(parentWord));
+              const filteredRelatedWords = combinedRelatedWords.filter((relatedWord) => !relatedWord.includes(parentWord));
               const relatedWords = new Set(filteredRelatedWords);
 
               parsingAccumulator.push({
