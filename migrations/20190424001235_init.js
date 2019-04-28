@@ -10,7 +10,7 @@ exports.up = function (knex, Promise) {
       table.jsonb('remaining_sequences');
     })
     .createTable('game_rounds', (table) => {
-      table.integer('id').primary();
+      table.increments('id').primary();
       table.timestamps();
       table.integer('game_id').references('games.id');
       table.integer('round_id');
@@ -21,21 +21,19 @@ exports.up = function (knex, Promise) {
       table.increments('id').primary();
       table.timestamps();
       table.string('name').unique();
-      table.string('definition')
     })
     .createTable('child_concepts', (table) => {
       table.increments('id').primary();
       table.timestamps();
       table.string('name').unique();
-      table.string('definition');
     })
     .createTable('game_answers', (table) => {
-      table.integer('id').primary();
+      table.increments('id').primary();
       table.integer('parent_concept_id').references('parent_concepts.id');
       table.integer('game_id').references('games.id');
     })
     .createTable('game_clues', (table) => {
-      table.integer('id').primary();
+      table.increments('id').primary();
       table.integer('child_concept_id').references('child_concepts.id');
       table.integer('game_answer_id').references('game_answers.id');
       table.integer('user_guessed_answer_id').references('game_answers.id');

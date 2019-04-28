@@ -1,52 +1,9 @@
-let generateRandomizedSequences = require('../Utilities/randomizedClueSet');
-
 // Game State cares about holding the overall state details
 // It explicitly manages current round, correct guesses, incorrect guesses, current round clues, and previous guesses
 //
 
-const incrementedCounts = (checkedAnswers) => {
-  const includesIncorrect = checkedAnswers.find(({ isCorrect }) => isCorrect === false)
 
-  if (includesIncorrect) {
-    return [0, 1];
-  }
-  return [1, 0];
-}
 
-const compareGuessToAnswer = (
-  currentRoundWords,
-  { word: guessWord, guess }
-) => {
-  const foundWord = currentRoundWords.find(({ word }) => word === guessWord);
-
-  if (foundWord === undefined) {
-    throw new Error('You are not guessing a valid sequence');
-  }
-
-  const { answer } = foundWord;
-  return answer === guess;
-};
-
-const seedToMapping = (
-  map,
-  {
-    parentWord,
-    relatedWords,
-    parentWordNumber
-  }) => {
-  map.set(parentWordNumber, {
-    relatedWords,
-    parentWord
-  });
-  return map;
-};
-
-const getParentWords = (seedWords) => {
-  return [1, 2, 3, 4, 5].map((index) => ({
-    parentOf: index,
-    word: seedWords.get(index).parentWord,
-  }))
-}
 
 const pickAnswerToShow = (guessedWord, index, checkedAnswers) => {
   const { isCorrect } = guessedWord;
@@ -132,20 +89,6 @@ class GameState {
     }
   }
 
-  getRoundSequenceKey() {
-    const keys = [
-      "threeAccumulator",
-      "twoAccumulator",
-      "fourAccumulator",
-    ];
-
-    return keys[this.correctGuesses];
-  }
-
-  getClueSequenceFromRound() {
-    return this.clueSequences[this.getRoundSequenceKey()].pop();
-  }
-
   checkGameReady() {
     if (!this.gameReady) {
       throw new Error('The Game State Has Not Been Initialized');
@@ -171,28 +114,6 @@ class GameState {
     return this.currentRoundWords;
   }
 
-  generateRoundClues() {
-    this.checkGameReady();
-
-    const roundSequence = this.getClueSequenceFromRound();
-
-    const generateRoundClue = this.generateRoundClue.bind(this);
-    this.currentRoundWords = roundSequence.map(generateRoundClue);
-
-
-
-    return this.currentRoundWords;
-  }
-
-  generateRoundClue(parentWordNumber) {
-    const word = this.popWordFromSeedWords(parentWordNumber);
-
-    return {
-      word,
-      answer: parentWordNumber,
-      isCorrect: null,
-    }
-  }
 
   popWordFromSeedWords(parentWordNumber) {
     const relatedWords = this.seedWords.get(parentWordNumber).relatedWords;

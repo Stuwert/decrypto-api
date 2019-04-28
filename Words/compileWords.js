@@ -4,30 +4,32 @@ let shuffle = require('../Utilities/shuffle');
 
 var wordsApiUrl = 'https://wordsapiv1.p.rapidapi.com/words/';
 
-var wordnikApi = 'https://api.wordnik.com/v4/words.json/randomWords?hasDictionaryDef=true&includePartOfSpeech=noun&excludePartOfSpeech=pronoun%2Cpreposition%2Caffix%2Cfamily-name%2Cgiven-name%2Cnoun-posessive%2Cpast-participle%2Cproper-noun&minCorpusCount=100000&maxCorpusCount=-1&minDictionaryCount=1&maxDictionaryCount=-1&minLength=12&maxLength=12&limit=12&api_key=97d94b0b7779a50ac900e04879302f1c70b3d0fa7b6102f20';
+var wordnikApi = 'https://api.wordnik.com/v4/words.json/randomWords?hasDictionaryDef=true&includePartOfSpeech=noun&excludePartOfSpeech=pronoun%2Cpreposition%2Caffix%2Cfamily-name%2Cgiven-name%2Cnoun-posessive%2Cpast-participle%2Cproper-noun&minCorpusCount=75000&maxCorpusCount=-1&minDictionaryCount=1&maxDictionaryCount=-1&minLength=12&maxLength=12&limit=12&api_key=97d94b0b7779a50ac900e04879302f1c70b3d0fa7b6102f20';
 
 const reduceRelatedWords = (
   allRelatedWords,
   relatedWordsArray
 ) => {
-  const relationships = ["synonyms", "typeOf", "examples ", "hasTypes", "similarTo"];
+  const relationships = ["synonyms", "typeOf", "examples", "hasTypes", "similarTo"];
   relationships.forEach((relationship) => {
     if (relatedWordsArray[relationship] !== undefined) {
-      allRelatedWords = allRelatedWords.concat(relatedWordsArray[relationship]);
+      const relatedWords = relatedWordsArray[relationship].map((word) => ({ word, relationship }));
+      allRelatedWords = allRelatedWords.concat(relatedWords);
     }
   })
   return allRelatedWords
 };
 
-const seedWordsToApi = ({ body }) => (
-  body
+const seedWordsToApi = ({ body }) => {
+  console.log(body);
+  return body
     .map(({ word }) => word)
     .map((word) => {
       return unirest
         .get(wordsApiUrl + word)
         .headers('X-Mashape-Key', 'AAoWTRQr5nmshGZgNIdtpy7qcTYFp1WmlhOjsnCxoZU0RUQeln')
     })
-)
+}
 
 const getCompiledWords = () => {
 
@@ -45,7 +47,7 @@ const getCompiledWords = () => {
         // Map Seedwords to get relationships from wordsApi
         const apiCalls = seedWordsToApi(results);
         return Promise.all(apiCalls)
-          .then((relatedWordsArray) => {
+          .then((results) => {
             // It is theoretically possible to
             // get back bad values, but we're going to
             // be naive for now.
@@ -53,18 +55,18 @@ const getCompiledWords = () => {
             //   value.success !== false &&
             //   value.results !== undefined
             // ))
-            const wordApiResponseBody = relatedWordsArray.map(({ body }) => body);
+            const wordApiResponseBody = results.map(({ body }) => body);
 
             let parsedWords = wordApiResponseBody.reduce((parsingAccumulator, { word: parentWord, results: relatedWordsArrays }) => {
 
               // Be careful, this is technically a filtering mechanism
-              if (relatedWordsArray === undefined) {
+              if (relatedWordsArrays === undefined) {
                 return parsingAccumulator;
               }
 
               const combinedRelatedWords = relatedWordsArrays.reduce(reduceRelatedWords, []);
               // This will filter out any phrases that have the parent in the phrase
-              const filteredRelatedWords = combinedRelatedWords.filter((relatedWord) => !relatedWord.includes(parentWord));
+              const filteredRelatedWords = combinedRelatedWords.filter((relatedWord) => !relatedWord.word.includes(parentWord));
               const relatedWords = new Set(filteredRelatedWords);
 
               parsingAccumulator.push({

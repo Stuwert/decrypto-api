@@ -1,6 +1,6 @@
 const { ApolloServer, gql } = require('apollo-server');
 let getCompiledWords = require('./Words/compileWords');
-let generateRandomizedClues = require('./Utilities/randomizedClueSet');
+let generateRandomizedClues = require('./GameState/initializeGame/generateRandomizedSequences');
 let GameState = require('./GameState/index');
 let knex = require('../knex');
 let CurrentGame = new GameState();
