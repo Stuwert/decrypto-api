@@ -2,6 +2,7 @@ const knex = require('../../db/knex');
 const moment = require('moment');
 const generateRandomizedSequences = require('./generateRandomizedSequences');
 const setUpWordsAndRelationships = require('./addNewWordsAndRelationshipsToDatabase');
+const shuffle = require('../../Utilities/shuffle');
 
 // generate randomized clue set
 // Start new game with defaults
@@ -9,21 +10,21 @@ const setUpWordsAndRelationships = require('./addNewWordsAndRelationshipsToDatab
 //
 // generate first clue set
 
-const parentClueIds = [13, 29, 28, 31, 32, 33];
+const parentClueIds = [13, 29, 28, 31, 32];
 
-const createGameAnswer = (parentId, gameId, childIds, gameSequenceId) => {
+const createGameAnswer = (parentId, gameId, childIds) => {
   console.log(parentId);
   console.log(childIds.length)
   console.log(childIds);
   return knex('game_answers').insert({
     parent_concept_id: parentId,
     game_id: gameId,
-    available_child_concepts: JSON.stringify(childIds),
-    game_sequence_id: gameSequenceId,
+    available_child_concepts: JSON.stringify(shuffle(childIds)),
   }).then((results) => console.log(results))
 }
 
-const storeGameAnswers = (newGameId, parentClueIds) => {
+const storeGameAnswers = (newGame) => {
+  const { newGameId, parentWordIds } = newGame;
   return knex.from('parent_child_concept_relationships')
     .whereIn('parent_concept_id', parentClueIds)
     .select(
@@ -31,22 +32,22 @@ const storeGameAnswers = (newGameId, parentClueIds) => {
       'child_concept_id AS childConceptId'
     )
     .then((parentChildRelationships) => {
-      return parentClueIds.map(
+      return parentWordIds.map(
         (parentId, index) => createGameAnswer(
           parentId,
           newGameId,
           parentChildRelationships
             .filter(({ parentConceptId }) => parentId === parentConceptId)
             .map(({ childConceptId }) => childConceptId),
-          index + 1,
         )
       )
-    });
+    })
+    .then(() => ({ ...newGame, roundCount: 0 }));
 }
 
-const initializeNewGame = () => {
+const initializeNewGame = (parentWordIds) => {
   // setUpWordsAndRelationships().then()
-  const randomizedSequences = generateRandomizedSequences();
+  const randomizedSequences = generateRandomizedSequences(parentWordIds);
   return knex('games')
     .insert({
       created_at: moment(),
@@ -56,12 +57,12 @@ const initializeNewGame = () => {
       remaining_sequences: randomizedSequences
     })
     .returning('id')
-    .then((newGameId) => ({ newGameId: newGameId[0], parentClueIds }))
+    .then((newGameId) => ({ newGameId: newGameId[0], parentWordIds }))
 }
 
-const startGame = () => {
-  return initializeNewGame()
-    .then(({ newGameId, parentClueIds }) => storeGameAnswers(newGameId, parentClueIds))
+const startGame = (parentWordIds) => {
+  return initializeNewGame(parentWordIds)
+    .then((newGame) => storeGameAnswers(newGame))
 }
 
-startGame();
+startGame(parentClueIds);

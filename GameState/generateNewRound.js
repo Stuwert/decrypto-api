@@ -2,53 +2,36 @@ const knex = require('../db/knex');
 const moment = require('moment');
 
 
-generateRoundClues() {
-  this.checkGameReady();
+const getNextGameClue = (gameId) => async (parentConceptId) => {
+  const [{available_child_concepts: childConcepts}] = await knex('game_answers').select('available_child_concepts')
+    .where({
+      game_id: gameId,
+      parent_concept_id: parentConceptId
+    });
 
-  const roundSequence = this.getClueSequenceFromRound();
+  console.log(childConcepts.length);
+  const childConceptId = childConcepts.pop();
 
-  const generateRoundClue = this.generateRoundClue.bind(this);
-  this.currentRoundWords = roundSequence.map(generateRoundClue);
+  console.log(childConcepts.length);
 
-
-
-  return this.currentRoundWords;
-}
-
-generateRoundClue(parentWordNumber) {
-  const word = this.popWordFromSeedWords(parentWordNumber);
+  await knex('game_answers').where({
+    game_id: gameId,
+    parent_concept_id: parentConceptId
+  }).update({
+    available_child_concepts: JSON.stringify(childConcepts)
+  });
 
   return {
-    word,
-    answer: parentWordNumber,
-    isCorrect: null,
-  }
+    childConceptId,
+    parentConceptId
+  };
 }
 
-const getNextClue = (parentAnswerId => {
-
-})
-
-const generateNewRound = (gameState) => {
-
-  generateRoundSequence(gameState).then((clueSequence) => {
-    return knex('game_rounds').insert({
-      created_at: moment(),
-      updated_at: moment(),
-      game_id: gameState.id
-      round_id: gameState.rounds + 1 // This is not a thing... lol
-      clueSequence: clueSequence,
-    })
-      .returning('clue_sequecne')
-  }).then((clueSequence) => Promise.all(clueSequence[0].map()})
-  .then((cluePromises) => Promise.all)
-}
-
-const getRoundSequence = (gameState) => {
+const generateRoundSequence = async (gameState) => {
   const keys = [
-    "threeAccumulator",
-    "twoAccumulator",
-    "fourAccumulator",
+    "threeLengthSequences",
+    "twoLengthSequences",
+    "fourLengthSequences",
   ];
 
   const {
@@ -57,13 +40,28 @@ const getRoundSequence = (gameState) => {
     id: gameId
   } = gameState;
 
-  const sequence = remainingSequences[keys[correctGuessCount]].pop();
-  return knex('games').where({ id: gameId })
+  const parentSequence = remainingSequences[keys[correctGuessCount]].pop();
+
+  await knex('games').where({ id: gameId })
     .update({ remaining_sequences: remainingSequences })
-    .then(() => sequence)
+
+  const getNextClue = getNextGameClue(gameState.id);
+  return await Promise.all(parentSequence.map(getNextClue));
+}
+
+const createGameRound = async (gameState) => {
+  console.log("Starting at ", moment().format())
+  const childIdSequence = await generateRoundSequence(gameState)
+
+  await knex('game_rounds').insert({
+    created_at: moment(),
+    updated_at: moment(),
+    game_id: gameState.id,
+    round_id: gameState.roundCount + 1, // This is not a thing... lol
+    clue_sequence: JSON.stringify(childIdSequence),
+  })
+  console.log("Ending at ", moment().format())
 
 }
 
-const generateRoundClues = (gameId) => {
-
-}
+module.exports = createGameRound;
