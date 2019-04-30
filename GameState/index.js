@@ -125,47 +125,7 @@ class GameState {
     return word;
   }
 
-  checkAnswers(userGuesses) {
-    this.checkGameReady();
 
-    if (userGuesses.length !== this.currentRoundWords.length) {
-      throw new Error("You must make exactly 3 guesses");
-    }
-
-    const currentRoundWords = this.currentRoundWords;
-    const roundNumber = this.currentRound;
-
-    // This could technically lead to them being re-ordered...
-    const answeredWords = userGuesses.map(
-      (guessWord, wordIndex) => ({
-        ...currentRoundWords[wordIndex],
-        isCorrect: compareGuessToAnswer(currentRoundWords, guessWord),
-        guess: guessWord.guess,
-        locationInSequence: wordIndex + 1,
-        roundNumber,
-      })
-    );
-
-    const answeredWordsWithAnswers = answeredWords.map(pickAnswerToShow);
-
-    const [addToCorrect, addToIncorrect] = incrementedCounts(answeredWords);
-
-    this.correctGuesses = this.correctGuesses + addToCorrect;
-    this.incorrectGuesses = this.incorrectGuesses + addToIncorrect;
-    this.guessedWords = this.guessedWords.concat(answeredWordsWithAnswers);
-    this.currentRound++;
-
-    if (this.correctGuesses >= 3) {
-      this.hasBeenCompleted = true;
-
-
-      return answeredWordsWithAnswers;
-    }
-
-    this.generateRoundClues();
-
-    return answeredWordsWithAnswers;
-  }
 }
 
 module.exports = GameState;

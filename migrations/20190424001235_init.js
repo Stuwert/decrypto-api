@@ -38,7 +38,7 @@ exports.up = function (knex, Promise) {
       table.integer('game_answer_id').references('game_answers.id');
       table.integer('user_guessed_answer_id').references('game_answers.id');
       table.integer('sequence_location');
-      table.integer('game_round_id').references('game_rounds.id');
+      table.integer('game_round');
     })
     .createTable('concept_relationship_types', (table) => {
       table.increments();
