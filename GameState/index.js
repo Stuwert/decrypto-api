@@ -5,28 +5,7 @@
 
 
 
-const pickAnswerToShow = (guessedWord, index, checkedAnswers) => {
-  const { isCorrect } = guessedWord;
 
-  if (isCorrect) return { ...guessedWord, showAnswer: true };
-
-  // We will allow users to see 1 fewer answers than the number of incorrect guesses
-  // i.e. if they have 3 incorrect guesses they will see 2 answers.
-  // If no answers are incorrect, the code will never reach here.
-  const incorrectWordsToShowAnswer = checkedAnswers.filter(({ isCorrect }) => !isCorrect).slice(0, -1);
-
-  if (incorrectWordsToShowAnswer.indexOf(guessedWord) !== -1) {
-    return {
-      ...guessedWord,
-      showAnswer: true,
-    };
-  }
-
-  return {
-    ...guessedWord,
-    showAnswer: false,
-  };
-}
 
 class GameState {
   constructor() {

@@ -28,18 +28,16 @@ const getNextGameClue = ({ id: gameId, roundCount }) => async (parentConceptId, 
   return childConceptId;
 }
 
-const generateRoundSequence = async (gameState) => {
+const generateRoundSequence = async ({
+  remaining_sequences: remainingSequences,
+  correct_guess_count: correctGuessCount,
+  id: gameId
+}) => {
   const keys = [
     "threeLengthSequences",
     "twoLengthSequences",
     "fourLengthSequences",
   ];
-
-  const {
-    remaining_sequences: remainingSequences,
-    correct_guess_count: correctGuessCount,
-    id: gameId
-  } = gameState;
 
   const parentSequence = remainingSequences[keys[correctGuessCount]].pop();
 
@@ -58,7 +56,7 @@ const createGameRound = async (gameState) => {
     created_at: moment(),
     updated_at: moment(),
     game_id: gameState.id,
-    round_id: gameState.roundCount + 1, // This is not a thing... lol
+    round_id: gameState.current_round + 1, // This is not a thing... lol
   })
   console.log("Ending at ", moment().format())
 
