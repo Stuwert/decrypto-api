@@ -17,8 +17,7 @@ node ./index.js
 ### Architecture
 
 ```
-\GameState // manages any logic that mutates the state of the game
-// this includes generating new rounds, validating user guesses, and initializing the game
+\GameState // generates new rounds, validates user guesses, and initializes the game
 \migrations
 \Mutation
 \Query
