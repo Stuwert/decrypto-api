@@ -1,4 +1,4 @@
-let shuffle = require('../shuffle');
+let shuffle = require('../Utilities/shuffle');
 
 const seedWords = `
 throat
