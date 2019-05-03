@@ -1,7 +1,7 @@
 
 exports.up = function (knex, Promise) {
   return knex.schema.table('game_clues', (gameClues) => {
-    gameClues.boolean('show_answer');
+    gameClues.boolean('show_answer').defaultTo(false);
     gameClues.integer('game_id').references('games.id');
     gameClues.dropColumn('game_answer_id');
     gameClues.dropColumn('user_guessed_answer_id');

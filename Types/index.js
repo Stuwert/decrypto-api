@@ -5,13 +5,13 @@ module.exports = gql`
   type GameState {
     correctGuessCount: Int!
     currentRound: Int!
-    createdAt: String
+    startedAt: String
     endedAt: String
     id: ID!
     incorrectGuessCount: Int!
-    updatedAt: String
-    gameClues: [GameClue]
-    currentRoundWords: [GameClue]
+    otherRoundClues: [GameClue]
+    currentRoundClues: [GameClue]
+    parentConcepts: [ID]!
   }
 
   type FinalGameState {
@@ -33,20 +33,26 @@ module.exports = gql`
     isCorrect: Boolean
   }
 
+  type RoundAnswers {
+    roundClues: [GameClue]
+    hasGameEnded: Boolean
+  }
+
   input Guess {
     word: String!
-    parentConceptId: Int!
+    guess: Int!
   }
 
   type Query {
-    getGameState(game: ID!): GameState
+    getGameState(id: ID!): GameState
     showFinalGameState(game: ID!): FinalGameState
   }
 
   type Mutation {
     startGame: ID!
     checkAnswers(
-      guesses: [Guess]
-    ): [GameClue]
+      gameId: ID!
+      guesses: [Guess]!
+    ): RoundAnswers
   }
 `;

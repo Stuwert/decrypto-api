@@ -53,6 +53,5 @@ exports.down = function (knex, Promise) {
     .dropTable('game_answers')
     .dropTable('child_concepts')
     .dropTable('parent_concepts')
-    .dropTable('game_rounds')
     .dropTable('games');
 };

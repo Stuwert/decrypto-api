@@ -1,6 +1,10 @@
 const moment = require("moment");
+const getGameState = require('./getFormattedGameState');
+const generateNewRound = require('./generateNewRound');
+const { getRoundCluesFromRound, formatClue } = require('./getRoundClues');
+const knex = require('../db/knex');
 
-const incrementedCounts = (checkedAnswers) => {
+const incrementUserGuessCounts = (checkedAnswers) => {
   const includesIncorrect = checkedAnswers.find(({ isCorrect }) => isCorrect === false)
 
   if (includesIncorrect) {
@@ -9,120 +13,111 @@ const incrementedCounts = (checkedAnswers) => {
   return [1, 0];
 }
 
+const makePercentageChance = (percentageChance) => (
+  Math.floor(Math.random() * (100 / percentageChance)) < 1
+);
 
+const checkRoundClue = (userGuesses) => async (guessedClue, index) => {
+  const { guess } = userGuesses.find(({ word }) => guessedClue.childConcept === word);
 
-const updateAndStripAnswer = (guessedWord, index, checkedAnswers) => {
-  const { isCorrect, guess } = guessedWord;
+  const isCorrect = guess === guessedClue.parentConceptId;
 
-  if (isCorrect) return { ...guessedWord, showAnswer: true };
-
-  // We will allow users to see 1 fewer answers than the number of incorrect guesses
-  // i.e. if they have 3 incorrect guesses they will see 2 answers.
-  // If no answers are incorrect, the code will never reach here.
-  const incorrectWordsToShowAnswer = checkedAnswers.filter(({ isCorrect }) => !isCorrect).slice(0, -1);
-
-  const showAnswer = incorrectWordsToShowAnswer.indexOf(guessedWord) !== -1;
-
-  const gameClue = await knex('game_clues')
-    .where({ id: gameClueId })
+  await knex('game_clues')
+    .where({ id: guessedClue.id })
     .update({
-      user_guessed_parent_concept_id: guess,
-      show_answer: showAnswer;
+      show_answer: isCorrect || makePercentageChance(40),
+      user_guessed_parent_concept_id: guess
     });
 
-  const
+  const [updatedGuessedClue] = await knex('child_concepts')
+    .join('game_clues', 'child_concepts.id', 'game_clues.child_concept_id')
+    .where('game_clues.id', guessedClue.id);
+
+  console.log(updatedGuessedClue);
+
+  const formatClueWithoutOverride = formatClue(false);
+
+  return formatClueWithoutOverride(updatedGuessedClue);
 }
 
-const setWordAnswer = (userGuessId, showAnswer = false) => {
-  return await knex('game_clues').where({
-    id: gameClueId,
-  }).update({
-    user_guessed_parent_concept_id: userGuessId,
-    show_answer: showAnswer,
-  });
-}
-
-const getUpdateStatementFromCluesAndGuesses = (
-  userGuesses,
-  { name, gameClueId, parentConceptId }
-) => {
-  const userGuess = userGuesses.find(({ word }) => word === name);
-
-  return {
-    guess,
-    isCorrect: guess === parentConceptId
-    parentConceptId,
-    name,
-    gameClueId,
-  }
-}
-
-const shouldGameEnd = (correctGuessCount) => {
+const gameShouldEnd = (correctGuessCount) => {
   if (correctGuessCount >= 3) return moment();
 
   return null;
 }
 
-const checkAnswers = async (userGuesses, gameId, gameRoundId) => {
+const endGame = async (
+  gameId
+) => {
+  await knex('games')
+    .where({ id: gameId })
+    .update({
+      ended_at: moment(),
+      current_round: 0
+    })
 
-  /**
-   * Guess
-   * word: String!
-   * guess: Int!
-   */
-  // this.checkGameReady();
-
-  // if (userGuesses.length !== this.currentRoundWords.length) {
-  //   throw new Error("You must make exactly 3 guesses");
-  // }
-
-  // const currentRoundWords = await knex.from('games')
-  //   .joinRaw('game_clues.id = games.id AND game_clues.game_round = games.current_round')
-  //   .select('game_clues')
-  //   .where('games.id', gameId)
-  //   .orderBy('game_clues.sequence_location');
-
-  // set show answer
-  // user guess
-
-  const roundClues = await knex('round_clues')
-    .select(
-      'child_concepts.name AS name',
-      'game_clues.id AS gameClueId'
-      'game_clues.parent_concept_id AS parentConceptId'
-    )
-    .join('child_concepts', 'round_clues.child_concept_id', 'child_concepts.id')
-    .where({
-      game_id: gameId,
-      game_round: gameRoundId,
+  await knex('game_clues')
+    .where({ game_id: gameId })
+    .update({
+      show_answer: true
     });
 
-  const answeredWords = roundClues.map((roundClue) => ({
-    ...getUpdateStatementFromCluesAndGuesses(userGuesses, roundClue),
-  }))
-
-  // TODO - Change this to strip out the answers from the response
-  const strippedAnswers = await Promise.all(answeredWords.map(insertAndStripAnswer));
-
-  // update game state
-  const [addToCorrect, addToIncorrect] = incrementedCounts(answeredWords);
-  const incrementedCorrect = correctGuesses + addToCorrect;
-  const incrementedIncorrect = incorrectGuesses + addToIncorrect;
-  // update game
-  //
-  const updatedGameState = await knex('games').where({ id: gameId })
-    .update({
-      correct_guess_count: incrementedCorrect,
-      incorrect_guess_count: incrementedIncorrect,
-      current_round: currentRound + 1
-      ended_at: shouldGameEnd(incrementedCorrect, incrementedIncorrect)
-    })
-    .returning(
-      'id',
-      'current_round',
-      'correct_guess_count',
-      'remaining_sequences'
-    );
-
-  return await generateRoundClues(updatedGameState);
+  return;
 }
+
+const incrementGame = async (
+  gameId,
+  newCorrectGuessCount,
+  newIncorrectGuessCount,
+  currentRound,
+) => {
+
+  await knex('games')
+    .where({ id: gameId })
+    .update({
+      incorrect_guess_count: newIncorrectGuessCount,
+      correct_guess_count: newCorrectGuessCount,
+      current_round: currentRound + 1,
+    })
+
+  return await knex('games')
+    .where('id', gameId);
+}
+
+const checkAnswers = async (userGuesses, gameId) => {
+  const gameState = await getGameState(gameId);
+
+  const { currentRound, correctGuessCount, incorrectGuessCount } = gameState;
+
+  const roundClues = await getRoundCluesFromRound(currentRound, gameId, true);
+
+  const checkRoundClueWithGuesses = checkRoundClue(userGuesses);
+
+  // This is what we're going to return
+  const checkedRoundClues = await Promise.all(roundClues.map(checkRoundClueWithGuesses));
+
+  const [addToCorrect, addToIncorrect] = incrementUserGuessCounts(checkedRoundClues);
+
+  const newCorrectGuessCount = correctGuessCount + addToCorrect;
+  const newIncorrectGuessCount = incorrectGuessCount + addToIncorrect;
+
+  const [newGameState] = await incrementGame(gameId, newCorrectGuessCount, newIncorrectGuessCount, currentRound);
+
+  if (gameShouldEnd(newCorrectGuessCount)) {
+    await endGame(gameId, newCorrectGuessCount, newIncorrectGuessCount);
+
+    return {
+      hasGameEnded: true,
+      roundClues: roundClues,
+    }
+  }
+
+  await generateNewRound(newGameState);
+
+  return {
+    hasGameEnded: false,
+    roundClues: checkedRoundClues
+  };
+}
+
+module.exports = checkAnswers;

@@ -1,19 +1,5 @@
 const knex = require('../db/knex');
-
-const getGameState = async (parent, args, context, info) => {
-  const game = knex('games')
-    .where({ id: args['id'] });
-
-  const guessedWords = knex('game_clues')
-    .join('child_concept_id', 'game_clues.child_concept_id', 'child_concepts.id')
-    .where('game_clues.game_id', args['id'])
-
-  return {
-    ...game,
-    guessedWords,
-  }
-
-}
+const getGameState = require('./getGameState');
 
 const showFinalGameState = () => { };
 

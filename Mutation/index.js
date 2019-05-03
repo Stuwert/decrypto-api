@@ -1,3 +1,5 @@
+const checkAnswers = require('../GameState/checkAnswers');
+
 const setupGame = require('../GameState/initializeGame/setUpGame');
 const generateNewRound = require('../GameState/generateNewRound');
 
@@ -9,11 +11,14 @@ const startGame = async () => {
 }
 
 
-const checkAnswers = (parent, args, context, info) => {
-  return CurrentGame.checkAnswers(args["guesses"]);
+const checkAnswersWrapper = async (parent, args, context, info) => {
+  return await checkAnswers(
+    args['guesses'],
+    args['gameId']
+  )
 }
 
 module.exports = {
   startGame,
-  checkAnswers,
+  checkAnswers: checkAnswersWrapper,
 }
