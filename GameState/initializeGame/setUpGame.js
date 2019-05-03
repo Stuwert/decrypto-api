@@ -10,43 +10,42 @@ const shuffle = require('../../Utilities/shuffle');
 //
 // generate first clue set
 
-const parentClueIds = [13, 29, 28, 31, 32];
 
 const createGameAnswer = (parentId, gameId, childIds) => {
-  console.log(parentId);
-  console.log(childIds.length)
-  console.log(childIds);
   return knex('game_answers').insert({
     parent_concept_id: parentId,
     game_id: gameId,
     available_child_concepts: JSON.stringify(shuffle(childIds)),
-  }).then((results) => console.log(results))
+  });
 }
 
-const storeGameAnswers = (newGame) => {
-  const { newGameId, parentWordIds } = newGame;
-  return knex.from('parent_child_concept_relationships')
-    .whereIn('parent_concept_id', parentClueIds)
+const storeGameAnswers = async (newGame) => {
+  const { id, parentWordIds } = newGame;
+  const parentChildRelationships = await knex.from('parent_child_concept_relationships')
+    .whereIn('parent_concept_id', parentWordIds)
     .select(
       'parent_concept_id AS parentConceptId',
       'child_concept_id AS childConceptId'
+    );
+
+  await Promise.all(parentWordIds.map(
+    (parentId, index) => createGameAnswer(
+      parentId,
+      id,
+      parentChildRelationships
+        .filter(({ parentConceptId }) => parentId === parentConceptId)
+        .map(({ childConceptId }) => childConceptId),
     )
-    .then((parentChildRelationships) => {
-      return parentWordIds.map(
-        (parentId, index) => createGameAnswer(
-          parentId,
-          newGameId,
-          parentChildRelationships
-            .filter(({ parentConceptId }) => parentId === parentConceptId)
-            .map(({ childConceptId }) => childConceptId),
-        )
-      )
-    })
-    .then(() => ({ ...newGame, roundCount: 0 }));
+  ));
+
+  return {
+    ...newGame,
+    correct_guess_count: 0,
+    current_round: 1,
+  };
 }
 
 const initializeNewGame = (parentWordIds) => {
-  // setUpWordsAndRelationships().then()
   const randomizedSequences = generateRandomizedSequences(parentWordIds);
   return knex('games')
     .insert({
@@ -54,15 +53,18 @@ const initializeNewGame = (parentWordIds) => {
       updated_at: moment(),
       correct_guess_count: 0,
       incorrect_guess_count: 0,
-      remaining_sequences: randomizedSequences
+      remaining_sequences: randomizedSequences,
+      current_round: 1,
     })
     .returning('id')
-    .then((newGameId) => ({ newGameId: newGameId[0], parentWordIds }))
+    .then((newGameId) => ({ id: newGameId[0], parentWordIds, remaining_sequences: randomizedSequences }))
 }
 
-const startGame = (parentWordIds) => {
-  return initializeNewGame(parentWordIds)
-    .then((newGame) => storeGameAnswers(newGame))
+const setupGame = async () => {
+  const parentWordsIds = await setUpWordsAndRelationships();
+  const newGame = await initializeNewGame(parentWordsIds);
+
+  return await storeGameAnswers(newGame);
 }
 
-startGame(parentClueIds);
+module.exports = setupGame;

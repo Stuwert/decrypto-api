@@ -1,6 +1,7 @@
 let knex = require('../../db/knex');
 let getCompiledWords = require('../../Words/compileWords');
 let moment = require('moment');
+const requestedNumberOfWords = 5;
 
 const relationshipToId = {
   "synonyms": 1,
@@ -31,7 +32,6 @@ const addFoundIdFromPreexisting = (preExistingWords) => (word) => {
 }
 
 const separateWordsToInsertFromWordsToKeep = (wordsArray) => {
-  console.log(wordsArray);
   const parentWords = wordsArray.map(({ parentWord }) => parentWord);
   return findExistingParentWords(parentWords).then(
     (preExistingWords) => {
@@ -188,25 +188,15 @@ const insertChildAndParentRelationshipMappings = (parentWords) => {
     });
 }
 
-const saveWordsToDb = (knex) => {
-  getCompiledWords().then((wordsArray) => {
-    separateWordsToInsertFromWordsToKeep(wordsArray)
-      .then(({ wordsToInsert, wordsToKeep }) => {
-        return Promise.all(insertWordsIntoDatabase(wordsToInsert))
-          .then((resultsOfWordsToInsert) => wordsToKeep.concat(resultsOfWordsToInsert || []));
-      })
-      .then(insertChildAndParentRelationshipMappings)
-      .then((parentWords) => {
+const saveWordsToDb = async (knex) => {
+  const wordsArray = await getCompiledWords(requestedNumberOfWords);
+  const { wordsToInsert, wordsToKeep } = await separateWordsToInsertFromWordsToKeep(wordsArray);
 
-        console.log("end of the line");
-        parentWords.forEach(({ relatedWords, wordId }) => console.log({
-          wordId,
-          relatedWords: relatedWords.size
-        }))
-      });
-  });
+  const resultsOfWordsToInsert = await Promise.all(insertWordsIntoDatabase(wordsToInsert));
+  const joinedParentWords = wordsToKeep.concat(resultsOfWordsToInsert || []);
+  const parentWords = await insertChildAndParentRelationshipMappings(joinedParentWords);
 
+  return parentWords.map(({ wordId }) => wordId);
 }
 
-// saveWordsToDb();
 module.exports = saveWordsToDb;

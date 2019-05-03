@@ -6,16 +6,9 @@ exports.up = function (knex, Promise) {
       table.timestamps();
       table.integer('correct_guess_count');
       table.integer('incorrect_guess_count');
+      table.integer('current_round');
       table.dateTime('ended_at');
       table.jsonb('remaining_sequences');
-    })
-    .createTable('game_rounds', (table) => {
-      table.increments('id').primary();
-      table.timestamps();
-      table.integer('game_id').references('games.id');
-      table.integer('round_id');
-      table.jsonb('clue_sequence');// Might not need this but I'm storing it anyway
-      table.unique(['game_id', 'round_id']); //  A game should only have 1 round  once
     })
     .createTable('parent_concepts', (table) => {
       table.increments('id').primary();

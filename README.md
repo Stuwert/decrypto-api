@@ -22,6 +22,7 @@ node ./index.js
 \Mutation
 \Query
 \Types
+\Utilities // generic functions that help do stuff
 ```
 
 ### Graph Types
@@ -37,35 +38,54 @@ type Game {
   incorrectGuessCount: Int!
   updatedAt: DateTime
   gameClues: [GameClue]
+  gameAnswers: [GameAnswer]
 }
 
 type GameAnswer {
-
+  parentConcept: String!
+  parentConceptId: ID!
 }
 
 type GameClue {
   childConcept: String!
   sequenceLocation: Int!
   gameRound: Int!
-  game: Game
   userGuessedParentConceptId: ID!
   parentConceptId: ID!
 }
 
-type Sequence {
-  fourLengthSequences: [Int] #length 4
-  threeLengthSequences: [Int] # length 3
-  twoLengthSequences: [Int] # length 2
-}
-
-
-
 ```
+
+#### Under The Hood
+
+The are a few under relationships under the hood that aren't accessible via graph types that make this whole thing go:
+
+ParentConcept: Root words that are used as the clues in the games.
+ChildConcept: Clues that are given.
+ParentChildConceptRelationship: Defines how the child concepts are related to the parents.
+
+While from a pure perspective, this is a duplication of data (it's possible that the same word "incorrectly" shows up twice in parent and child concept tables). Given that the game cares about the data, only unidirectionally, it's easier to handle them as though they are separate entities.
+
+GameAnswer.availableChildConcepts: This stores all of the child
 
 
 ### Basic Game Actions
 
 This game is fairly straightforward and single player for the time, so there are only a few different actions that
+
+*Start Game*
+*Check Answers*
+
+Both start game and end game will check and generate a new round (or end the game) if necessary.
+
+... and that's it.
+
+
+The rest of this is either grabbing the final game state, or grabbing the final game state, with the answers.
+
+*Get Game State*
+*Get Final Game State*
+
 
 
 

@@ -6,14 +6,6 @@ module.exports = {
     client: 'pg',
     connection: {
       database: 'cipher'
-    },
-    postProcessResponse: (result, queryContext) => {
-      // TODO: add special case for raw results (depends on dialect)
-      if (Array.isArray(result)) {
-        return result.map(row => convertToCamel(row));
-      } else {
-        return convertToCamel(result);
-      }
     }
   },
 

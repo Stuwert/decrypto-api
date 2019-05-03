@@ -22,7 +22,6 @@ const reduceRelatedWords = (
 };
 
 const seedWordsToApi = ({ body }) => {
-  console.log(body);
   return body
     .map(({ word }) => word)
     .map((word) => {
@@ -32,7 +31,7 @@ const seedWordsToApi = ({ body }) => {
     })
 }
 
-const getCompiledWords = () => {
+const getCompiledWords = (numberOfCompiledwords) => {
 
   // Fault tolerance will occur in 3 locations
   // 1. If the word has already been searched, go get the relationships from the databse
@@ -40,6 +39,7 @@ const getCompiledWords = () => {
   // 3. If 5 words have still not been found, retry.
 
   // Get seedwords from Wordnik
+
   return unirest
     .get(wordnikApi)
     .headers('Accept', 'application/json')
@@ -87,7 +87,7 @@ const getCompiledWords = () => {
 
             // Returns the 6 most valuable words wtih the parent word number attached
             return parsedWords
-              .slice(0, 6)
+              .slice(0, numberOfCompiledwords)
               .map((wordStuff, index) => ({ ...wordStuff, parentWordNumber: index + 1 }));
           })
       });

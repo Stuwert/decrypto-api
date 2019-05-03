@@ -1,50 +1,52 @@
 const { gql } = require('apollo-server');
 
 module.exports = gql`
-  type WordClue {
-    word: String!
-    isCorrect: Boolean
-    locationInSequence: Int
-  }
-
-  type WordAnswer {
-    word: String!
-    parentOf: Int!
-  }
-
-  type Word {
-    word: String!
-    isCorrect: Boolean
-    guess: Int
-    locationInSequence: Int
-    roundNumber: Int
-    answer: Int
-  }
 
   type GameState {
-    correctGuesses: Int
+    correctGuessCount: Int!
     currentRound: Int!
-    currentRoundWords: [WordClue]
-    incorrectGuesses: Int
-    gameReady: Boolean!
-    guessedWords: [Word]
-    answers: [WordAnswer]
+    createdAt: String
+    endedAt: String
+    id: ID!
+    incorrectGuessCount: Int!
+    updatedAt: String
+    gameClues: [GameClue]
+    currentRoundWords: [GameClue]
+  }
+
+  type FinalGameState {
+    game: GameState
+    gameAnswers: [GameAnswer]
+  }
+
+  type GameAnswer {
+    parentConcept: String!
+    parentConceptId: ID!
+  }
+
+  type GameClue {
+    childConcept: String!
+    sequenceLocation: Int!
+    gameRound: Int!
+    userGuessedParentConceptId: ID
+    parentConceptId: ID
+    isCorrect: Boolean
   }
 
   input Guess {
     word: String!
-    guess: Int!
+    parentConceptId: Int!
   }
 
   type Query {
-    getGameState: GameState
-    showAnswers: GameState
+    getGameState(game: ID!): GameState
+    showFinalGameState(game: ID!): FinalGameState
   }
 
   type Mutation {
-    startGame: GameState
+    startGame: ID!
     checkAnswers(
       guesses: [Guess]
-    ): [Word]
+    ): [GameClue]
   }
 `;

@@ -1,12 +1,11 @@
-const startGame = () => {
-  if (CurrentGame.isFinished() || !CurrentGame.isStarted()) {
-    return getCompiledWords().then((seedWords) => {
-      // console.log("Seed Words are ", seedWords);
-      return CurrentGame.startGame(seedWords);
-    })
-  }
+const setupGame = require('../GameState/initializeGame/setUpGame');
+const generateNewRound = require('../GameState/generateNewRound');
 
-  return CurrentGame.getGameState();
+const startGame = async () => {
+  const gameState = await setupGame();
+  await generateNewRound(gameState);
+
+  return gameState.id;
 }
 
 

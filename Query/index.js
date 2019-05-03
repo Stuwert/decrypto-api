@@ -15,13 +15,11 @@ const getGameState = async (parent, args, context, info) => {
 
 }
 
-const getGameState = () => CurrentGame.getGameState();
-
-const showAnswers = () => CurrentGame.showAnswers();
+const showFinalGameState = () => { };
 
 module.exports = {
   getGameState,
-  showAnswers,
+  showFinalGameState,
 }
 
 // type GameState {
