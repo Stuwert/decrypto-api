@@ -31,9 +31,9 @@ const getRoundCluesFromRound = async (currentRound, gameId, overrideShowAnswer) 
     .andWhere('game_clues.game_id', gameId)
     .andWhere('game_clues.game_round', currentRound);
 
-  const formateClueWithOverride = formatClue(overrideShowAnswer);
+  const formatClueWithOverride = formatClue(overrideShowAnswer);
 
-  return clues.map(formateClueWithOverride);
+  return clues.map(formatClueWithOverride);
 }
 
 const getRoundCluesNotFromRound = async (currentRound, gameId) => {
@@ -43,9 +43,11 @@ const getRoundCluesNotFromRound = async (currentRound, gameId) => {
     .andWhereNot('game_clues.game_round', currentRound);
 
   const overrideShowAnswer = false;
-  const formateClueWithOverride = formatClue(overrideShowAnswer);
+  const formatClueWithOverride = formatClue(overrideShowAnswer);
+  console.log(clues);
+  console.log(clues.map(formatClueWithOverride));
 
-  return clues.map(formateClueWithOverride);
+  return clues.map(formatClueWithOverride);
 }
 
 module.exports = {

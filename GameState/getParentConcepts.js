@@ -28,7 +28,7 @@ const getGameAnswers = async (gameId) => {
       'parnet_concepts.name'
     );
 
-  return formateAnswers(gameAnswers);
+  return formatAnswers(gameAnswers);
 }
 
 module.exports = {

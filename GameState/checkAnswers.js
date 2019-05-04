@@ -19,8 +19,7 @@ const makePercentageChance = (percentageChance) => (
 
 const checkRoundClue = (userGuesses) => async (guessedClue, index) => {
   const { guess } = userGuesses.find(({ word }) => guessedClue.childConcept === word);
-
-  const isCorrect = guess === guessedClue.parentConceptId;
+  const isCorrect = parseInt(guess) === guessedClue.parentConceptId;
 
   await knex('game_clues')
     .where({ id: guessedClue.id })
@@ -33,7 +32,6 @@ const checkRoundClue = (userGuesses) => async (guessedClue, index) => {
     .join('game_clues', 'child_concepts.id', 'game_clues.child_concept_id')
     .where('game_clues.id', guessedClue.id);
 
-  console.log(updatedGuessedClue);
 
   const formatClueWithoutOverride = formatClue(false);
 

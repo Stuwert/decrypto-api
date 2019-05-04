@@ -40,7 +40,7 @@ module.exports = gql`
 
   input Guess {
     word: String!
-    guess: Int!
+    guess: ID!
   }
 
   type Query {
