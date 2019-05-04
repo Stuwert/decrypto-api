@@ -7,7 +7,7 @@ module.exports = gql`
     currentRound: Int!
     startedAt: String
     endedAt: String
-    id: ID!
+    key: ID!
     incorrectGuessCount: Int!
     otherRoundClues: [GameClue]
     currentRoundClues: [GameClue]
@@ -44,8 +44,8 @@ module.exports = gql`
   }
 
   type Query {
-    getGameState(id: ID!): GameState
-    showFinalGameState(game: ID!): FinalGameState
+    getGameState(key: ID!): GameState
+    showFinalGameState(key: ID!): FinalGameState
   }
 
   type Mutation {
