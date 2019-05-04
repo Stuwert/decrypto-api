@@ -7,6 +7,7 @@ const formatGameState = ({
   ended_at: endedAt,
   incorrect_guess_count: incorrectGuessCount,
   current_round: currentRound,
+  key: key,
 }) => ({
   id,
   startedAt,
@@ -14,12 +15,13 @@ const formatGameState = ({
   endedAt,
   incorrectGuessCount,
   currentRound,
+  key,
 });
 
 
-module.exports = async (gameId) => {
+module.exports = async (gameKey) => {
   const [gameState] = await knex('games')
-    .where({ id: gameId });
+    .where({ key: gameKey });
 
   return formatGameState(gameState);
 }

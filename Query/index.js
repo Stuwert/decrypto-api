@@ -1,11 +1,29 @@
 const knex = require('../db/knex');
 const getGameState = require('./getGameState');
+// const getGameAnswers = require('./getGameAnswers');
 
-const showFinalGameState = () => { };
+const showFinalGameStateWrapper = async (parent, args, context, info) => {
+  const game = await getGameState(args['id']);
+
+  if (!game.endedAt) {
+    throw new Error('This game has not ended');
+  }
+
+  // const gameAnswers = await getGameAnswers(game.id);
+
+  return {
+    game,
+    gameAnswers,
+  }
+};
+
+const getGameStateWrapper = async (parent, args, context, info) => {
+  return await getGameState(args['id']);
+}
 
 module.exports = {
-  getGameState,
-  showFinalGameState,
+  getGameState: getGameStateWrapper,
+  showFinalGameState: showFinalGameStateWrapper,
 }
 
 // type GameState {

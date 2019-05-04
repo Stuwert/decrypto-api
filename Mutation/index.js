@@ -7,7 +7,7 @@ const startGame = async () => {
   const gameState = await setupGame();
   await generateNewRound(gameState);
 
-  return gameState.id;
+  return gameState.key;
 }
 
 
