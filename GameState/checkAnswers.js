@@ -49,15 +49,15 @@ const gameShouldEnd = (correctGuessCount) => {
 const endGame = async (
   gameId
 ) => {
-  await knex('games')
-    .where({ id: gameId })
+  const [{ id }] = await knex('games')
+    .where({ key: gameId })
     .update({
       ended_at: moment(),
       current_round: 0
     })
 
   await knex('game_clues')
-    .where({ game_id: gameId })
+    .where({ game_id: id })
     .update({
       show_answer: true
     });
@@ -73,7 +73,7 @@ const incrementGame = async (
 ) => {
 
   await knex('games')
-    .where({ id: gameId })
+    .where({ key: gameId })
     .update({
       incorrect_guess_count: newIncorrectGuessCount,
       correct_guess_count: newCorrectGuessCount,
@@ -81,7 +81,7 @@ const incrementGame = async (
     })
 
   return await knex('games')
-    .where('id', gameId);
+    .where('key', gameId);
 }
 
 const checkAnswers = async (userGuesses, gameId) => {
