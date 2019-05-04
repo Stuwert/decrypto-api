@@ -9,6 +9,7 @@ exports.up = function (knex, Promise) {
       table.integer('current_round');
       table.dateTime('ended_at');
       table.jsonb('remaining_sequences');
+      table.string('key');
     })
     .createTable('parent_concepts', (table) => {
       table.increments('id').primary();
