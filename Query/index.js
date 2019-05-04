@@ -18,7 +18,7 @@ const showFinalGameStateWrapper = async (parent, args, context, info) => {
 };
 
 const getGameStateWrapper = async (parent, args, context, info) => {
-  return await getGameState(args['id']);
+  return await getGameState(args['key']);
 }
 
 module.exports = {

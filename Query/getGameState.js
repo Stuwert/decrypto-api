@@ -3,10 +3,10 @@ const getGameState = require('../GameState/getFormattedGameState');
 const { getRoundCluesFromRound, getRoundCluesNotFromRound } = require('../GameState/getRoundClues');
 const { getParentConcepts } = require('../GameState/getParentConcepts');
 
-module.exports = async (gameId) => {
-  const gameState = await getGameState(gameId);
-
-  if (!gameState.id) {
+module.exports = async (gameKey) => {
+  const gameState = await getGameState(gameKey);
+  const gameId = gameState.id;
+  if (!gameId) {
     throw new Error('This game does not exist');
   }
 

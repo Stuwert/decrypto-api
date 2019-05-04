@@ -3,6 +3,7 @@ const moment = require('moment');
 const generateRandomizedSequences = require('./generateRandomizedSequences');
 const setUpWordsAndRelationships = require('./addNewWordsAndRelationshipsToDatabase');
 const shuffle = require('../../Utilities/shuffle');
+const uuid = require('uuid/v4');
 
 // generate randomized clue set
 // Start new game with defaults
@@ -10,6 +11,7 @@ const shuffle = require('../../Utilities/shuffle');
 //
 // generate first clue set
 
+const generateGameKey = () => uuid().split('-')[0];
 
 const createGameAnswer = (parentId, gameId, childIds) => {
   return knex('game_answers').insert({
@@ -47,6 +49,7 @@ const storeGameAnswers = async (newGame) => {
 
 const initializeNewGame = (parentWordIds) => {
   const randomizedSequences = generateRandomizedSequences(parentWordIds);
+  const key = generateGameKey();
   return knex('games')
     .insert({
       created_at: moment(),
@@ -55,9 +58,10 @@ const initializeNewGame = (parentWordIds) => {
       incorrect_guess_count: 0,
       remaining_sequences: randomizedSequences,
       current_round: 1,
+      key,
     })
     .returning('id')
-    .then((newGameId) => ({ id: newGameId[0], parentWordIds, remaining_sequences: randomizedSequences }))
+    .then((newGameId) => ({ id: newGameId[0], parentWordIds, remaining_sequences: randomizedSequences, key }))
 }
 
 const setupGame = async () => {

@@ -7,6 +7,7 @@ const startGame = async () => {
   const gameState = await setupGame();
   await generateNewRound(gameState);
 
+
   return gameState.key;
 }
 
@@ -14,7 +15,7 @@ const startGame = async () => {
 const checkAnswersWrapper = async (parent, args, context, info) => {
   return await checkAnswers(
     args['guesses'],
-    args['gameId']
+    args['gameKey']
   )
 }
 

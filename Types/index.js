@@ -51,7 +51,7 @@ module.exports = gql`
   type Mutation {
     startGame: ID!
     checkAnswers(
-      gameId: ID!
+      gameKey: ID!
       guesses: [Guess]!
     ): RoundAnswers
   }

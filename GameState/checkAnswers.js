@@ -73,7 +73,7 @@ const incrementGame = async (
 ) => {
 
   await knex('games')
-    .where({ key: gameId })
+    .where({ id: gameId })
     .update({
       incorrect_guess_count: newIncorrectGuessCount,
       correct_guess_count: newCorrectGuessCount,
@@ -81,15 +81,22 @@ const incrementGame = async (
     })
 
   return await knex('games')
-    .where('key', gameId);
+    .where('id', gameId);
 }
 
-const checkAnswers = async (userGuesses, gameId) => {
-  const gameState = await getGameState(gameId);
+const checkAnswers = async (userGuesses, gameKey) => {
+  const gameState = await getGameState(gameKey);
 
-  const { currentRound, correctGuessCount, incorrectGuessCount } = gameState;
+  const {
+    currentRound,
+    correctGuessCount,
+    incorrectGuessCount,
+    id: gameId,
+  } = gameState;
 
   const roundClues = await getRoundCluesFromRound(currentRound, gameId, true);
+
+  console.log(roundClues);
 
   const checkRoundClueWithGuesses = checkRoundClue(userGuesses);
 
