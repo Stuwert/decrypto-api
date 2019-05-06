@@ -39,20 +39,18 @@ const checkRoundClue = (userGuesses) => async (guessedClue, index) => {
 }
 
 const gameShouldEnd = (correctGuessCount) => {
-  if (correctGuessCount >= 3) return moment();
-
-  return null;
+  return correctGuessCount >= 3;
 }
 
 const endGame = async (
   gameId
 ) => {
-  const [{ id }] = await knex('games')
-    .where({ key: gameId })
+  await knex('games')
+    .where({ id: gameId })
     .update({
       ended_at: moment(),
       current_round: 0
-    })
+    });
 
   await knex('game_clues')
     .where({ game_id: id })

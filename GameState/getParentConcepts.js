@@ -9,6 +9,7 @@ const getRootQuery = (gameId) => knex
 const getParentConcepts = async (gameId) => {
   const parentConcepts = await getRootQuery(gameId)
     .select('parent_concepts.id')
+    .orderBy('parent_concepts.id')
 
   return parentConcepts.map(({ id }) => id);
 }
@@ -24,11 +25,11 @@ const formatAnswers = ({
 const getGameAnswers = async (gameId) => {
   const gameAnswers = await getRootQuery(gameId)
     .select(
-      'parent_concpets.id',
-      'parnet_concepts.name'
+      'parent_concepts.id',
+      'parent_concepts.name'
     );
 
-  return formatAnswers(gameAnswers);
+  return gameAnswers.map(formatAnswers);
 }
 
 module.exports = {

@@ -29,7 +29,8 @@ const getRoundCluesFromRound = async (currentRound, gameId, overrideShowAnswer) 
   const clues = await knex('child_concepts')
     .join('game_clues', 'child_concepts.id', 'game_clues.child_concept_id')
     .andWhere('game_clues.game_id', gameId)
-    .andWhere('game_clues.game_round', currentRound);
+    .andWhere('game_clues.game_round', currentRound)
+    .orderBy('game_clues.sequence_location');
 
   const formatClueWithOverride = formatClue(overrideShowAnswer);
 
