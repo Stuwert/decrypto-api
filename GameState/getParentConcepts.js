@@ -27,7 +27,8 @@ const getGameAnswers = async (gameId) => {
     .select(
       'parent_concepts.id',
       'parent_concepts.name'
-    );
+    )
+    .orderBy('parent_concepts.id');
 
   return gameAnswers.map(formatAnswers);
 }
