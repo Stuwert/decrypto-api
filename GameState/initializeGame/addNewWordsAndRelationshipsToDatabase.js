@@ -2,6 +2,8 @@ let knex = require('../../db/knex');
 let getCompiledWords = require('../../Words/compileWords');
 let moment = require('moment');
 const requestedNumberOfWords = 5;
+const WORDS_API_REQUEST = 'WORDS_API_REQUEST';
+const MAX_DAILY_COUNT = 4500;
 
 const relationshipToId = {
   "synonyms": 1,
@@ -188,9 +190,66 @@ const insertChildAndParentRelationshipMappings = (parentWords) => {
     });
 }
 
-const saveWordsToDb = async (knex) => {
+const getCurrentRequestCount = async () => {
+  const requestCount = await knex('external_requests')
+    .select('daily_count')
+    .where({
+      request_date: moment(),
+      request_account_name: WORDS_API_REQUEST
+    });
+
+  console.log(requestCount)
+
+  if (!requestCount[0]) {
+    await knex('external_requests')
+      .insert({
+        request_account_name: WORDS_API_REQUEST,
+        request_date: moment(),
+        daily_count: 0,
+      })
+
+    return 0;
+  }
+
+  return requestCount[0].daily_count;
+}
+
+const updateCurrentRequestCount = async (currentCount) => {
+  await knex('external_requests')
+    .where({
+      request_date: moment(),
+      request_account_name: WORDS_API_REQUEST
+    })
+    .update({
+      daily_count: currentCount + 12
+    })
+}
+
+const saveWordsToDb = async () => {
+  const currentRequestCount = await getCurrentRequestCount();
+
+  console.log("Current request count is ", currentRequestCount);
+
+  if (currentRequestCount >= MAX_DAILY_COUNT) {
+    console.log("should definitely hit here");
+
+    const parentWords = await knex('parent_concepts')
+      .where('id', '>=', 1)
+      .select('id')
+      .orderByRaw('RANDOM()')
+      .limit(5);
+
+    console.log(parentWords);
+
+    return parentWords.map(({ id }) => id);
+  }
+
+
   const wordsArray = await getCompiledWords(requestedNumberOfWords);
+
   const { wordsToInsert, wordsToKeep } = await separateWordsToInsertFromWordsToKeep(wordsArray);
+
+  await updateCurrentRequestCount(currentRequestCount);
 
   const resultsOfWordsToInsert = await Promise.all(insertWordsIntoDatabase(wordsToInsert));
   const joinedParentWords = wordsToKeep.concat(resultsOfWordsToInsert || []);

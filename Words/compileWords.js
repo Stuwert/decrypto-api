@@ -1,11 +1,15 @@
 let unirest = require('unirest');
 let seedWords = require('./seedWords');
 let shuffle = require('../Utilities/shuffle');
-const { wordnikApiKey, wordsApiKey } = require('../env');
+require('dotenv').config();
+const { WORDNIK_API_KEY: wordnikApiKey, WORDS_API_KEY: wordsApiKey } = process.env;
+
 
 var wordsApiUrl = 'https://wordsapiv1.p.rapidapi.com/words/';
 
 var wordnikApi = 'https://api.wordnik.com/v4/words.json/randomWords?hasDictionaryDef=true&includePartOfSpeech=noun&excludePartOfSpeech=pronoun%2Cpreposition%2Caffix%2Cfamily-name%2Cgiven-name%2Cnoun-posessive%2Cpast-participle%2Cproper-noun&minCorpusCount=75000&maxCorpusCount=-1&minDictionaryCount=1&maxDictionaryCount=-1&minLength=12&maxLength=12&limit=12&api_key=' + wordnikApiKey;
+
+
 
 const reduceRelatedWords = (
   allRelatedWords,

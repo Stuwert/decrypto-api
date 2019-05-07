@@ -52,12 +52,6 @@ const endGame = async (
       current_round: 0
     });
 
-  await knex('game_clues')
-    .where({ game_id: id })
-    .update({
-      show_answer: true
-    });
-
   return;
 }
 
