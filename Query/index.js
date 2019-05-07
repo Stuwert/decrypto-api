@@ -3,7 +3,7 @@ const getGameState = require('./getGameState');
 const { getGameAnswers } = require('../GameState/getParentConcepts');
 
 const showFinalGameStateWrapper = async (parent, args, context, info) => {
-  const game = await getGameState(args['key']);
+  const game = await getGameState(args['key'], true);
 
   if (!game.endedAt) {
     throw new Error('This game has not ended');

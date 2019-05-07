@@ -3,7 +3,7 @@ const getGameState = require('../GameState/getFormattedGameState');
 const { getRoundCluesFromRound, getRoundCluesNotFromRound } = require('../GameState/getRoundClues');
 const { getParentConcepts } = require('../GameState/getParentConcepts');
 
-module.exports = async (gameKey) => {
+module.exports = async (gameKey, overrideAnswers = false) => {
   const gameState = await getGameState(gameKey);
   const gameId = gameState.id;
   if (!gameId) {
@@ -19,9 +19,12 @@ module.exports = async (gameKey) => {
     gameId
   );
 
+  console.log(overrideAnswers);
+
   const otherRoundClues = await getRoundCluesNotFromRound(
     currentRound,
     gameId,
+    overrideAnswers,
   );
 
   const parentConcepts = await getParentConcepts(gameId);

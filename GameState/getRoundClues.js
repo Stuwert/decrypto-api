@@ -21,11 +21,10 @@ const formatClue = (overrideShowAnswer) => ({
   parentConceptId: showParentConceptId(parentConceptId, showAnswer, overrideShowAnswer),
   isCorrect: userGuessedParentConceptId === parentConceptId,
   id,
+  showAnswer: overrideShowAnswer ? showAnswer : undefined
 });
 
 const getRoundCluesFromRound = async (currentRound, gameId, overrideShowAnswer) => {
-  console.log(currentRound);
-  console.log(gameId)
   const clues = await knex('child_concepts')
     .join('game_clues', 'child_concepts.id', 'game_clues.child_concept_id')
     .andWhere('game_clues.game_id', gameId)
@@ -37,13 +36,12 @@ const getRoundCluesFromRound = async (currentRound, gameId, overrideShowAnswer) 
   return clues.map(formatClueWithOverride);
 }
 
-const getRoundCluesNotFromRound = async (currentRound, gameId) => {
+const getRoundCluesNotFromRound = async (currentRound, gameId, overrideShowAnswer = false) => {
   const clues = await knex('game_clues')
     .join('child_concepts', 'game_clues.child_concept_id', 'child_concepts.id')
     .andWhere('game_clues.game_id', gameId)
     .andWhereNot('game_clues.game_round', currentRound);
 
-  const overrideShowAnswer = false;
   const formatClueWithOverride = formatClue(overrideShowAnswer);
   console.log(clues);
   console.log(clues.map(formatClueWithOverride));

@@ -31,6 +31,7 @@ module.exports = gql`
     userGuessedParentConceptId: ID
     parentConceptId: ID
     isCorrect: Boolean
+    showAnswer: Boolean
   }
 
   type RoundAnswers {
