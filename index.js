@@ -1,4 +1,4 @@
-const { ApolloServer, } = require('apollo-server');
+const { ApolloServer } = require('apollo-server');
 const typeDefs = require('./Types');
 const Query = require('./Query');
 const Mutation = require('./Mutation');
