@@ -43,9 +43,9 @@ const generateNewRound = async ({
   current_round: roundCount,
 }) => {
   const keys = [
+    "fourLengthSequences",
     "threeLengthSequences",
     "twoLengthSequences",
-    "fourLengthSequences",
   ];
 
   const parentSequence = remainingSequences[keys[correctGuessCount]].pop();
