@@ -7,9 +7,9 @@ exports.seed = function (knex, Promise) {
       return knex('parent_child_relationships').insert([
         { id: 1, colName: 'synonyms' },
         { id: 2, colName: 'typeOf' },
-        { id: 3, colName: 'examples' }
-        { id: 4, colName: 'hasTypes' }
-        { id: 5, colName: 'similarTo' }
+        { id: 3, colName: 'examples' },
+        { id: 4, colName: 'hasTypes' },
+        { id: 5, colName: 'similarTo' },
       ]);
     });
 };
