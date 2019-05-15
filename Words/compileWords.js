@@ -7,7 +7,7 @@ const { WORDNIK_API_KEY: wordnikApiKey, WORDS_API_KEY: wordsApiKey } = process.e
 
 var wordsApiUrl = 'https://wordsapiv1.p.rapidapi.com/words/';
 
-var wordnikApi = 'https://api.wordnik.com/v4/words.json/randomWords?hasDictionaryDef=true&includePartOfSpeech=noun&excludePartOfSpeech=pronoun%2Cpreposition%2Caffix%2Cfamily-name%2Cgiven-name%2Cnoun-posessive%2Cpast-participle%2Cproper-noun&minCorpusCount=75000&maxCorpusCount=-1&minDictionaryCount=1&maxDictionaryCount=-1&minLength=12&maxLength=12&limit=12&api_key=' + wordnikApiKey;
+// var wordnikApi = 'https://api.wordnik.com/v4/words.json/randomWords?hasDictionaryDef=true&includePartOfSpeech=noun&excludePartOfSpeech=pronoun%2Cpreposition%2Caffix%2Cfamily-name%2Cgiven-name%2Cnoun-posessive%2Cpast-participle%2Cproper-noun&minCorpusCount=75000&maxCorpusCount=-1&minDictionaryCount=1&maxDictionaryCount=-1&minLength=12&maxLength=12&limit=12&api_key=' + wordnikApiKey;
 
 
 
@@ -25,9 +25,13 @@ const reduceRelatedWords = (
   return allRelatedWords
 };
 
-const seedWordsToApi = ({ body }) => {
-  return body
-    .map(({ word }) => word)
+const seedWordsToApi = () => {
+  // console.log("Body is ", body);
+  // old input { body }
+  // return body
+  // .map(({ word }) => word)
+  console.log(seedWords());
+  return seedWords()
     .map((word) => {
       return unirest
         .get(wordsApiUrl + word)
@@ -44,58 +48,57 @@ const getCompiledWords = (numberOfCompiledwords) => {
 
   // Get seedwords from Wordnik
 
-  return unirest
-    .get(wordnikApi)
-    .headers('Accept', 'application/json')
-    .then(
-      (results) => {
-        // Map Seedwords to get relationships from wordsApi
-        const apiCalls = seedWordsToApi(results);
-        return Promise.all(apiCalls)
-          .then((results) => {
-            // It is theoretically possible to
-            // get back bad values, but we're going to
-            // be naive for now.
-            // .filter((value) => (
-            //   value.success !== false &&
-            //   value.results !== undefined
-            // ))
-            const wordApiResponseBody = results.map(({ body }) => body);
+  // return unirest
+  //   .get(wordnikApi)
+  //   .headers('Accept', 'application/json')
+  //   .then(
+  //     (results) => {
+  //       // Map Seedwords to get relationships from wordsApi
+  // const apiCalls = seedWordsToApi(results);
+  return Promise.all(seedWordsToApi())
+    .then((results) => {
+      // It is theoretically possible to
+      // get back bad values, but we're going to
+      // be naive for now.
+      // .filter((value) => (
+      //   value.success !== false &&
+      //   value.results !== undefined
+      // ))
+      const wordApiResponseBody = results.map(({ body }) => body);
 
-            let parsedWords = wordApiResponseBody.reduce((parsingAccumulator, { word: parentWord, results: relatedWordsArrays }) => {
+      let parsedWords = wordApiResponseBody.reduce((parsingAccumulator, { word: parentWord, results: relatedWordsArrays }) => {
 
-              // Be careful, this is technically a filtering mechanism
-              if (relatedWordsArrays === undefined) {
-                return parsingAccumulator;
-              }
+        // Be careful, this is technically a filtering mechanism
+        if (relatedWordsArrays === undefined) {
+          return parsingAccumulator;
+        }
 
-              const combinedRelatedWords = relatedWordsArrays.reduce(reduceRelatedWords, []);
-              // This will filter out any phrases that have the parent in the phrase
-              const filteredRelatedWords = combinedRelatedWords.filter((relatedWord) => !relatedWord.word.includes(parentWord));
+        const combinedRelatedWords = relatedWordsArrays.reduce(reduceRelatedWords, []);
+        // This will filter out any phrases that have the parent in the phrase
+        const filteredRelatedWords = combinedRelatedWords.filter((relatedWord) => !relatedWord.word.includes(parentWord));
 
-              const relatedWords = new Set(filteredRelatedWords);
+        const relatedWords = new Set(filteredRelatedWords);
 
-              parsingAccumulator.push({
-                parentWord,
-                relatedWords,
-              })
+        parsingAccumulator.push({
+          parentWord,
+          relatedWords,
+        })
 
-              return parsingAccumulator;
-            }, []);
+        return parsingAccumulator;
+      }, []);
 
-            parsedWords.sort((a, b) => {
-              const aLength = a.relatedWords.size;
-              const bLength = b.relatedWords.size;
+      parsedWords.sort((a, b) => {
+        const aLength = a.relatedWords.size;
+        const bLength = b.relatedWords.size;
 
-              return bLength - aLength;
-            });
-
-            // Returns the 6 most valuable words wtih the parent word number attached
-            return parsedWords
-              .slice(0, numberOfCompiledwords)
-              .map((wordStuff, index) => ({ ...wordStuff, parentWordNumber: index + 1 }));
-          })
+        return bLength - aLength;
       });
+
+      // Returns the 6 most valuable words wtih the parent word number attached
+      return parsedWords
+        .slice(0, numberOfCompiledwords)
+        .map((wordStuff, index) => ({ ...wordStuff, parentWordNumber: index + 1 }));
+    });
 }
 
 module.exports = getCompiledWords;
